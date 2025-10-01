@@ -25,6 +25,7 @@ Dos:
 3. **Save progress** - user can save and exit at any point - this can happen automatically, using a timer, or a button.
    All are fine.
 4. **Resume capability** - user can return and continue from where they left off
+5. **Please play to your strengths** - if you feel that you are more front-end than backend lean into that and vice versa!
 
 Don'ts:
 
@@ -65,5 +66,6 @@ choices than what has been made in the `/backend` directory)
 
 ## GO GO GO! 🌶️🌶️🌶️
 
-Remember, focus on the core "resume" functionality - that is what we are evaluating. We look forward to catching up and
-reviewing your submission!
+**Remember**, focus on the core "resume" functionality - that is what we are evaluating. And again, please play to your strengths. If you
+feel that you are more front-end than backend lean into that and vice versa. Feel free to leave a little note in your fork about which
+one you decided to put more effort into to make it easier for us when reviewing. We look forward to catching up and reviewing your submission!
