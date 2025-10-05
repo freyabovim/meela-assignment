@@ -1,6 +1,6 @@
 # Client Onboarding Form
 
-by Freya Bovim
+A simple intake form  that persists user responses to a database using unique user IDs. Users can return to their form by navigating to a URL containing their userId.
 
 ## Prerequisites
 
@@ -19,13 +19,8 @@ by Freya Bovim
    ```bash
    cd backend
    
-   # Install sqlx-cli for database migrations
    cargo install sqlx-cli
-   
-   # Create environment file
-   echo "DATABASE_URL=sqlite:data.db" > .env
-   
-   # Create and migrate database
+
    sqlx database create
    sqlx migrate run
    ```
