@@ -1,71 +1,51 @@
-# Take-home task: Client Onboarding Form
+# Client Onboarding Form
 
-## Background
+by Freya Bovim
 
-At Meela, we help match clients to therapists, but first clients need to complete comprehensive intake forms. These
-forms are complex with multiple sections and sensitive mental health questions requiring careful UX.
+## Prerequisites
 
-The forms can take some time to get through. The reality is that sometimes life will demand immediate attention from our
-users such that they do not complete the form in a single sitting and they would benefit from having a partial form
-submission to return to. And that is the crux of this task.
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- [Rust](https://rustup.rs/) (latest stable)
 
-## Objective
+## Setup
 
-Build a _simple_ client intake form system that supports **partial form submission** with the ability to resume later.
-Like, really simple. Proof-of-concept level. Don't worry about edge-cases or validation. Visit [our
-site](https://app.meelahealth.com) and cherry pick a small amount of different questions that make up your form.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/freyabovim/meela-assignment.git
+   cd meela-assignment
+   ```
 
-**The main goal**: A user should be able to fill out part of a form, save their progress, and return later to continue
-where they left off.
+2. **Backend Setup**
+   ```bash
+   cd backend
+   
+   # Install sqlx-cli for database migrations
+   cargo install sqlx-cli
+   
+   # Create environment file
+   echo "DATABASE_URL=sqlite:data.db" > .env
+   
+   # Create and migrate database
+   sqlx database create
+   sqlx migrate run
+   ```
 
-Dos:
+3. **Frontend Setup**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
 
-1. **Fork our repo!**
-2. **Multi-step form** at least 3 questions.
-3. **Save progress** - user can save and exit at any point - this can happen automatically, using a timer, or a button.
-   All are fine.
-4. **Resume capability** - user can return and continue from where they left off
-5. **Please play to your strengths** - if you feel that you are more front-end than backend lean into that and vice versa!
+## Running the Application
 
-Don'ts:
+1. **Start the backend** (from `backend/` directory):
+   ```bash
+   cargo run
+   ```
+   Backend will run on `http://localhost:3000`
 
-1. **No auth required** - having a UUID in a URL is super-good enough!
-2. **No versioning required** - don't worry about handling form schema changes.
-3. **No i18n!** - overkill!
-
-**Time Estimate:** spend _max_ 4-6 hours, please.
-
-If you do not finish in this time, stop! We can talk about what you did manage to accomplish in that time!
-
-## Technology Stack
-
-**Frontend**: Use React or Solid.js (your choice)
-
-**Backend**: Feel free to use the provided Rust code in the `/backend` directory - or butcher it and take what you need.
-We do take into account your prior experience with Rust so if you don't have any: do not worry, we will adapt our
-evaluation accordingly.
-
-**Database**: Must use a database (relational or NoSQL - your choice really and then you might have to make some other
-choices than what has been made in the `/backend` directory)
-
-**API**: GraphQL or REST (your choice)
-
-**Requirements**:
-
-- Frontend must communicate with a backend
-- Backend must persist data to a database
-  - That means you should **not** save the partial submissions using `localStorage` in the browser!
-
-## Deliverables
-
-1. Make the thing work
-2. Tell us how to set it up and run it so we can review it:
-   1. Either write a `.txt`/`.md` file that tells us which invocations of `cargo run`, `npm run dev`, `yarn dev`, ... we have to use, or
-   2. simply provide a `justfile`/`Makefile` for us.
-3. Send us a link to your fork on your github account!
-
-## GO GO GO! 🌶️🌶️🌶️
-
-**Remember**, focus on the core "resume" functionality - that is what we are evaluating. And again, please play to your strengths. If you
-feel that you are more front-end than backend lean into that and vice versa. Feel free to leave a little note in your fork about which
-one you decided to put more effort into to make it easier for us when reviewing. We look forward to catching up and reviewing your submission!
+2. **Start the frontend** (from `frontend/` directory):
+   ```bash
+   npm run dev
+   ```
+   Frontend will run on `http://localhost:5173`

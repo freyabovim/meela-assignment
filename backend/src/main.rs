@@ -1,16 +1,14 @@
 use std::env;
-
-use log::info;
+use uuid::Uuid;
 use poem::{
     EndpointExt, Route, Server,
-    endpoint::{StaticFileEndpoint, StaticFilesEndpoint},
     error::ResponseError,
-    get, handler,
+    handler, post,
     http::StatusCode,
     listener::TcpListener,
-    web::{Data, Json, Path},
+    web::{Data, Json},
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 
 #[derive(Debug, thiserror::Error)]
@@ -23,8 +21,6 @@ enum Error {
     Var(#[from] std::env::VarError),
     #[error(transparent)]
     Dotenv(#[from] dotenv::Error),
-    #[error("Query failed")]
-    QueryFailed,
 }
 
 impl ResponseError for Error {
@@ -38,24 +34,88 @@ async fn init_pool() -> Result<SqlitePool, Error> {
     Ok(pool)
 }
 
+#[derive(Deserialize)]
+struct SaveFormRequest {
+    user_id: Option<String>,
+    form_step: i32,
+    email: String,
+    therapy_for_whom: String,
+    therapist_gender: String,
+}
+
 #[derive(Serialize)]
-struct HelloResponse {
-    hello: String,
+struct SaveFormResponse {
+    user_id: String,
+}
+
+#[derive(Deserialize)]
+struct LoadFormRequest {
+    user_id: String,
+}
+
+#[derive(Serialize)]
+struct LoadFormResponse {
+    user_id: Option<String>,
+    form_step: Option<i32>,
+    email: Option<String>,
+    therapy_for_whom: Option<String>,
+    therapist_gender: Option<String>,
 }
 
 #[handler]
-async fn hello(
+async fn save_form_data(
     Data(pool): Data<&SqlitePool>,
-    Path(name): Path<String>,
-) -> Result<Json<HelloResponse>, Error> {
-    let r = sqlx::query!("select concat('Hello ', $1) as hello", name)
-        .fetch_one(pool)
-        .await?;
-    let Some(hello) = r.hello else {
-        Err(Error::QueryFailed)?
+    Json(req): Json<SaveFormRequest>,
+) -> Result<Json<SaveFormResponse>, Error> {
+    let user_id = if req.user_id.is_none() || req.user_id.as_ref().map_or(true, |s| s.is_empty()) {
+        Uuid::new_v4().to_string()
+    } else {
+        req.user_id.unwrap()
     };
 
-    Ok(Json(HelloResponse { hello }))
+    sqlx::query!(
+        "INSERT OR REPLACE INTO form_data (user_id, form_step, email, therapy_for_whom, therapist_gender, updated_at) 
+         VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)",
+        user_id,
+        req.form_step,
+        req.email,
+        req.therapy_for_whom,
+        req.therapist_gender
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(Json(SaveFormResponse { user_id }))
+}
+
+#[handler]
+async fn load_form_data(
+    Data(pool): Data<&SqlitePool>,
+    Json(req): Json<LoadFormRequest>,
+) -> Result<Json<LoadFormResponse>, Error> {
+    let result = sqlx::query!(
+        "SELECT user_id, form_step, email, therapy_for_whom, therapist_gender FROM form_data WHERE user_id = $1",
+        req.user_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    match result {
+        Some(row) => Ok(Json(LoadFormResponse {
+            user_id: row.user_id,
+            form_step: Some(row.form_step as i32),
+            email: row.email,
+            therapy_for_whom: row.therapy_for_whom,
+            therapist_gender: row.therapist_gender,
+        })),
+        None => Ok(Json(LoadFormResponse {
+            user_id: Some(req.user_id),
+            form_step: Some(1),
+            email: None,
+            therapy_for_whom: None,
+            therapist_gender: None,
+        })),
+    }
 }
 
 #[tokio::main]
@@ -63,15 +123,12 @@ async fn main() -> Result<(), Error> {
     dotenv::dotenv()?;
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    info!("Initialize db pool");
     let pool = init_pool().await?;
     let app = Route::new()
-        .at("/api/hello/:name", get(hello))
-        .at("/favicon.ico", StaticFileEndpoint::new("www/favicon.ico"))
-        .nest("/static/", StaticFilesEndpoint::new("www"))
-        .at("*", StaticFileEndpoint::new("www/index.html"))
+        .at("/api/save-form", post(save_form_data))
+        .at("/api/load-form", post(load_form_data))
         .data(pool);
-    Server::new(TcpListener::bind("0.0.0.0:3005"))
+    Server::new(TcpListener::bind("0.0.0.0:3000"))
         .run(app)
         .await?;
 
